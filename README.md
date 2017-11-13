@@ -47,11 +47,6 @@ $ make modules CONFIG_DEBUG_INFO=y
 $ make -j 16 CONFIG_DEBUG_INFO=y
 ```
 
-* Make some other images (such as ROMFS that we will need later):
-```bash
-$ make image
-```
-
 #### Troubleshooting
 
 1. It may complain that some compilers (such as: `arm-linux-gcc`,...) are lacked, we just need to make symlinks from the current `arm-linux-gnueabi-*` to them:
@@ -61,9 +56,9 @@ $ cd /usr/bin
 $ for i in `ls arm-linux-gnueabi-*`; do ln -sf $i arm-linux${i#arm-linux-gnueabi}; done
 ```
 
-2. Remember to download toolchains for uClinux (`arm-uClinux-gnueabi-*`) and install to `/usr/local` so that some modules can be built succesfully. (e.g. `usr/net-tools/`,...)
+2. Remember to download toolchains for uClinux (`arm-uClinux-gnueabi-*`) and install them to `/usr/local` so that some modules can be built succesfully. (e.g. `usr/net-tools/`,...)
 
-3. Some errors may appear when compiling modules in `usr/net-tools/` directory. For some reasons, the header files can be found (or the parameter of INCLUDE DIR in the Makefile did not work as expected). One workaround for that is: copying all `*.h` files from `usr/net-tools` and `usr/net-tools/include/` to the `usr/net-tools/lib` directory.
+3. Some errors may appear when compiling modules in `usr/net-tools/` directory. For some reasons, the header files can't be found (or the parameter of INCLUDE DIR in the Makefile did not work as expected). One workaround for that is: copying all `*.h` files from `usr/net-tools` and `usr/net-tools/include/` to the `usr/net-tools/lib` directory.
 
 ```bash
 $ cd [build_root]
@@ -166,7 +161,8 @@ LinuxuClinux_ARM_VersatilePBARM - A Profile for Linux uClinux_ARM_VersatilePB AR
 
 ## Testing the memory  with Volatility uClinux profile
 
-### Issue 1:
+### Issue 1: Overlay structures not present in vtypes
+
 ```
 $ volatility -f ~/project/source/uClinux-dist/mem.dump  imageinfo
 Volatility Foundation Volatility Framework 2.6
@@ -185,7 +181,8 @@ WARNING : volatility.debug    : Overlay structure in_ifaddr not present in vtype
                            DTB : -0x1L
 ```
 
-### Issue 2:
+### Issue 2: No suitable address space mapping found
+
 ```
 $ volatility -f ~/project/source/uClinux-dist/mem.dump --profile=LinuxuClinux_ARM_VersatilePBARM linux_lsmod
 Volatility Foundation Volatility Framework 2.6
