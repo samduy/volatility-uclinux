@@ -236,5 +236,93 @@ Tried to open image as:
  ArmAddressSpace - EXCEPTION: 'swapper_pg_dir'
 ```
 
+# Some manual tests on our memory
+
+The purpose is to see if:
+
+* The accquired memory is corruptted or not.
+* We can get any  information from the Non-MMU system
+* We can implement lacking features for volatility based on the results of manual tests.
+
+## 1. Convert dumped memory to physical raw:
+
+```bash
+$ volatility -f mem.dump --profile=LinuxuClinux_ARM_VersatilePBARM imagecopy -O converted.raw
+```
+
+## 2. Test: Kernel Identity Paging
+
+(Ref: [BOOK] Page 607)
+
+The method mentioned by the book is using `linux_volshell` plugin, but our profile is not working yet, so this module does not work consequently. However, we can do it manually by `hand` (means, by other linux `tradditional` tools).
+
+The idea is: we try to locate data associated with the initial Linux process ("swapper") in physical memory. 
+
+In order to do that, we first need to get the offset of the name member (`comm`) within the `task_struct`. Then we use this offset, plus the address of the process `init_task` that we can find in in `System.map` (and compute with architecture's shift, if neccessary) to find its physical address in memory. Finally, we read that address from the raw memory file, to see if it is actually the name ("swapper") or not.
+
+### Get offset of the name member (`comm`) within `task_struct`
+
+```bash
+$ cd /path/to/uClinux/profile/dir
+$ grep "<comm>" module.dwarf
+<2><0xc3b><DW_TAG_member> DW_AT_name<comm> DW_AT_decl_file<0x00000021 /masked/sensitive/path/source/uClinux-dist/linux/include/linux/sched.h> DW_AT_decl_line<0x00000609> DW_AT_type<<0x00007b67>> DW_AT_data_member_location<632>
+```
+
+=> We noticed the last number: `DW_AT_data_member_location` equals to `632`. It is the offset of member `comm` within the struct `task_struct`.
+
+### Find the `virtual address` of the process list head (init_task)
+
+By looking in the System.map (the term `virtual address` may not be correct in this case: uClinux with No-MMU. However, this is how it be done in general cases).
+
+```bash
+$ grep -w init_task boot/System.map 
+00321b28 D init_task
+```
+
+=> So, we know that the `init_task` process are located at the `virtual` address: `0x00321b28`
+
+### Read the actual data in the raw memory
+
+In general, we have to add the `architecture's identity-mapping shift` (`0xc0000000` in `32-bit` systems). However, we suppose in this case (uClinux without MMU), there is no such `shifting`. We can add the address found in the `System.map` directly with the physical offset, the result SHOULD be: the physical address of the name member (`comm`) within the struct `task_struct` in the raw memory.
+
+#### 1. Firstly, calculate that address
+
+```bash
+$ python -c 'print (0x00321b28 + 632)'
+3284384
+```
+
+#### 2. Then, read the raw memory directly.
+
+```bash
+$ xxd -s 3284384 -l 16 converted.raw 
+00321da0: 7377 6170 7065 7200 0000 0000 0000 0000  swapper.........
+```
+
+=> We can confirm that the name of the `init_task` (initial Linux process) is: "swapper", exact as we expected.
+
+## 3. Conclusion
+
+* The System.map is actually has the `physical` addresses.
+* We do not need to add `architecture's identity-mapping shift` when computing physical addresses.
+* The volatility source code might need to be updated accordingly (for this case).
+```
+File: volatility/plugins/overlays/linux/linux.py 
+Functions:
+VolatilityLinuxIntelValidAS
+VolatilityLinuxARMValidAS
+```
+
 # volatility-uclinux
 Volatility profile for uclinux
+
+# Some notes
+
+### Finding the kernel DTB
+
+Source: volatility/plugins/overlays/linux/linux.py
+
+Search for: `swapper_pg_dir` symbol (x86) or `init_level4_pgt` (x64).
+
+What is the symbol for uClinux? => ???
+(Ref: [BOOK] Page.608)
