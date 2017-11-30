@@ -339,4 +339,4 @@ What is the symbol for uClinux? => ???
 
 ### Some working commands on 20171130
 
-[[ Refer to the file here |working_commands_20171130.md]]
+Here: [working_commands_20171130.md](./working_commands_20171130.md)
