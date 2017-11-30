@@ -1,3 +1,7 @@
+# volatility-uclinux
+
+Volatility profile for uclinux
+
 # Manual
 
 ## Build uClinux kernel
@@ -313,10 +317,16 @@ VolatilityLinuxIntelValidAS
 VolatilityLinuxARMValidAS
 ```
 
-# volatility-uclinux
-Volatility profile for uclinux
-
 # Some notes
+
+### Save some configurations to a file to shorten the command we use
+
+```
+$ cat ~/.volatilityrc 
+[DEFAULT]
+PROFILE=LinuxuClinux_ARM_VersatilePBARM
+LOCATION=file:////masked/sensitive/path/source/uClinux-dist/converted.raw
+```
 
 ### Finding the kernel DTB
 
@@ -326,3 +336,7 @@ Search for: `swapper_pg_dir` symbol (x86) or `init_level4_pgt` (x64).
 
 What is the symbol for uClinux? => ???
 (Ref: [BOOK] Page.608)
+
+### Some working commands on 20171130
+
+[[ Refer to the file here |working_commands_20171130.md]]
