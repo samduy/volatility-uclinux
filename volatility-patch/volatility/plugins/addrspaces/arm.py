@@ -145,6 +145,12 @@ class ArmAddressSpace(paged.AbstractWritablePagedMemory):
                 return None
 
     def vtop(self, vaddr):
+	### SAM: 20171130
+	uClinux = 1
+	if uClinux:
+	  # there is no point to convert, the address is already physical
+	  return vaddr
+	### SAM: end
         debug.debug("\n--vtop start: {0:x}".format(vaddr), 4)
 
         pde_value = self.pde_value(vaddr)

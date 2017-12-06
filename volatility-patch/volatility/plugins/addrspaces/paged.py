@@ -98,7 +98,8 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
         except AttributeError:
             ## Ok so we need to find our dtb ourselves:
             dtb = obj.VolMagic(self.base).DTB.v()
-            if dtb:
+            #if dtb:
+            if dtb != None: ## SAM 20171206: DTB can be zero, in case of uClinux
                 ## Make sure to save dtb for other AS's
                 ## Will this have an effect on following ASes attempts if this fails?
                 self.base.dtb = dtb

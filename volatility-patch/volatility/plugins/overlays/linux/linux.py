@@ -2271,10 +2271,19 @@ class VolatilityDTB(obj.VolatilityMagic):
         profile = self.obj_vm.profile
         config = self.obj_vm.get_config()
         tbl    = self.obj_vm.profile.sys_map["kernel"]
+
+	## SAM: 20171130
+	# TODO: Find a way to auto-detect uClinux
+	uClinux = True
+	## SAM: end
         
         if profile.metadata.get('memory_model', '32bit') == "32bit":
             sym     = "swapper_pg_dir"
-            shifts  = [0xc0000000]
+	    ## SAM: 20171130
+	    if uClinux:
+	      sym = "__vectors_start"
+            shifts  = [0xc0000000, 0x00] # added 0x00
+	    ## SAM: end
             read_sz = 4
             fmt     = "<I"
         else:
@@ -2315,6 +2324,7 @@ class VolatilityDTB(obj.VolatilityMagic):
             self.obj_vm.profile.physical_shift = physical_shift_address 
             self.obj_vm.profile.virtual_shift  = virtual_shift_address
 
+	print("[1]good_dtb: %s " % good_dtb)
         if good_dtb == -1:
             for shift in shifts:
                 sym_addr = dtb_sym_addr - shift
@@ -2325,9 +2335,11 @@ class VolatilityDTB(obj.VolatilityMagic):
                 if buf:
                     idx = buf.find("swapper")
                     if idx == 0:
+			print("FOUND")
                         good_dtb = sym_addr
                         break
 
+	print("[2]good_dtb: %s " % good_dtb)
         # check for relocated or physical aslr kernel
         if good_dtb == -1:
             scanner = swapperScan(needles = ["swapper/0\x00\x00\x00\x00\x00\x00"])
@@ -2370,12 +2382,15 @@ class VolatilityLinuxIntelValidAS(obj.VolatilityMagic):
 
         init_task_addr = self.obj_vm.profile.get_symbol("init_task")
         if self.obj_vm.profile.metadata.get('memory_model', '32bit') == "32bit":
-            shifts = [0xc0000000]
+	    ## SAM: 20171130
+            shifts = [0xc0000000, 0x00] # added 0x00
+	    ## SAM: end
         else:
             shifts = [0xffffffff80000000, 0xffffffff80000000 - 0x1000000, 0xffffffff7fe00000]       
 
         ret = False
            
+	## SAM: 20171130: this should be updated in addrspaces/arm.py
         phys  = self.obj_vm.vtop(init_task_addr)
         if phys == None:
             return

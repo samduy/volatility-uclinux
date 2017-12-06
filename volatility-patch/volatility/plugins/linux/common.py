@@ -279,6 +279,10 @@ def get_time_vars(obj_vm):
     # 3.19(ish)+
     # getboottime from 3.19.x
     elif tkcore_addr:
+	## SAM: 20171130
+	return (wall, timeo)
+	## SAM: end
+
         # skip seqcount
         timekeeper = obj.Object("timekeeper", offset = tkcore_addr + 8, vm = obj_vm)
         wall = timekeeper.wall_to_monotonic
