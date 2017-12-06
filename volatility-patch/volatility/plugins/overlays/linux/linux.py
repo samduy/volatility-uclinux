@@ -2324,7 +2324,6 @@ class VolatilityDTB(obj.VolatilityMagic):
             self.obj_vm.profile.physical_shift = physical_shift_address 
             self.obj_vm.profile.virtual_shift  = virtual_shift_address
 
-	print("[1]good_dtb: %s " % good_dtb)
         if good_dtb == -1:
             for shift in shifts:
                 sym_addr = dtb_sym_addr - shift
@@ -2335,11 +2334,9 @@ class VolatilityDTB(obj.VolatilityMagic):
                 if buf:
                     idx = buf.find("swapper")
                     if idx == 0:
-			print("FOUND")
                         good_dtb = sym_addr
                         break
 
-	print("[2]good_dtb: %s " % good_dtb)
         # check for relocated or physical aslr kernel
         if good_dtb == -1:
             scanner = swapperScan(needles = ["swapper/0\x00\x00\x00\x00\x00\x00"])
