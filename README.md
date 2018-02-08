@@ -208,38 +208,4 @@ Here: [working_commands_20171130.md](./working_commands_20171130.md)
 
 ### Working wirh Volatility Shell
 
-* Start the interactive shell
-```
-$ python vol.py linux_volshell
-```
-
-* Get the profile
-```python
-In [1]: p = addrspace().profile
-```
-
-* Get the mapping table
-```python
-In [2]: tbl = p.sys_map["kernel"]
-```
-
-* Get any symbol
-```python
-In [3]: p.get_symbol("<symbol_name>")
-```
-
-E.g.
-```python
-In [3]: p.get_symbol("timekeeper")
-```
-
-* Get information of the profile
-```ipython
-In [7]: p.metadata
-Out[7]: {'arch': 'ARM', 'memory_model': '32bit', 'os': 'linux'}
-```
-
-* View all vtypes exist in the profile
-```ipython
-In []: p.vtypes
-```
+Please refer to the Wiki page [here](../../wiki/Working-with-Volatility-shell)
