@@ -6,69 +6,7 @@ Volatility profile for uclinux
 
 ## Build uClinux kernel
 
-### Download latest kernel
-
-From: <https://sourceforge.net/projects/uclinux/files/uClinux%20Stable/dist-20160919/uClinux-dist-20160919.tar.bz2/download>
-
-### Install toolchain and other tools
-
-* Cross compiler
-```bash
-$ sudo apt-get install gcc-arm-linux-gnueabi
-```
-
-* Download toolchains for uClinux, at:
-<https://sourceforge.net/projects/uclinux/files/Tools/arm-uclinuxeabi-20160831/arm-uclinuxeabi-tools-20160831.tar.gz/download>
-
-After downloading, unzip it and copy to corresponding directories.
-
-* Other dependency tools
-```bash
-$ sudo apt-get -y install libncurses5-dev bc lzop u-boot-tools genromfs
-```
-
-### Compile
-
-```bash
-$ make menuconfig
-```
-
-* Select a vendor profile (configuration file): we choose a board `Versatile-PB-noMMU` from `ARM`.
-  * Reasons:
-    1. It uses ARM architecture, that means we don't need to install other cross-compiler (like M68K, things will be more complicated).
-    2. The machine `versatilepb` is supported by QEMU ARM
-    3. It does not have MMU (and the impact of lacking MMU is exactly what we want to verify).
-
-```
-vendors/ARM/Versatile-PB-noMMU/config.arch
-```
-
-* Save and Exit.
-
-* Make (with Debug Information enabled: `CONFIG_DEBUG_INFO=y`)
-```
-$ make modules CONFIG_DEBUG_INFO=y
-$ make -j 16 CONFIG_DEBUG_INFO=y
-```
-
-#### Troubleshooting
-
-1. It may complain that some compilers (such as: `arm-linux-gcc`,...) are lacked, we just need to make symlinks from the current `arm-linux-gnueabi-*` to them:
-
-```bash
-$ cd /usr/bin
-$ for i in `ls arm-linux-gnueabi-*`; do ln -sf $i arm-linux${i#arm-linux-gnueabi}; done
-```
-
-2. Remember to download toolchains for uClinux (`arm-uClinux-gnueabi-*`) and install them to `/usr/local` so that some modules can be built succesfully. (e.g. `usr/net-tools/`,...)
-
-3. Some errors may appear when compiling modules in `usr/net-tools/` directory. For some reasons, the header files can't be found (or the parameter of INCLUDE DIR in the Makefile did not work as expected). One workaround for that is: copying all `*.h` files from `usr/net-tools` and `usr/net-tools/include/` to the `usr/net-tools/lib` directory.
-
-```bash
-$ cd [build_root]
-$ cp user/net-tools/*.h user/net-tools/lib/
-$ cp user/net-tools/include/*.h user/net-tools/lib/
-```
+Please refer to the Wiki page: [Build a uClinux kernel](../../wiki/Build-a-uClinux-kernel) for more detail.
 
 ## Make uClinux profile for Volatility
 
