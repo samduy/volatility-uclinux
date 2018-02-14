@@ -1,0 +1,237 @@
+diff --git a/volatility/dwarf.py b/volatility/dwarf.py
+index 211cdb42..e33384b0 100644
+--- a/volatility/dwarf.py
++++ b/volatility/dwarf.py
+@@ -121,8 +121,13 @@ class DWARFParser(object):
+ 
+     def base_type_name(self, data):
+         """Replace references to base types."""
++	type_name = None
+         if 'DW_AT_name' in data:
+-            return self.tp2vol[data['DW_AT_name'].strip('"')]
++            type_name = data['DW_AT_name'].strip('"')
++	    #print data
++
++        if type_name in self.tp2vol:
++	    return self.tp2vol[data['DW_AT_name'].strip('"')]
+         else:
+             sz = int(data['DW_AT_byte_size'], self.base)
+             if data['DW_AT_encoding'] == 'DW_ATE_unsigned':
+diff --git a/volatility/plugins/addrspaces/paged.py b/volatility/plugins/addrspaces/paged.py
+index c8c6c298..95e6ff48 100644
+--- a/volatility/plugins/addrspaces/paged.py
++++ b/volatility/plugins/addrspaces/paged.py
+@@ -98,7 +98,8 @@ class AbstractPagedMemory(addrspace.AbstractVirtualAddressSpace):
+         except AttributeError:
+             ## Ok so we need to find our dtb ourselves:
+             dtb = obj.VolMagic(self.base).DTB.v()
+-            if dtb:
++            #if dtb:
++            if dtb != None: ## SAM 20171206: DTB can be zero, in case of uClinux
+                 ## Make sure to save dtb for other AS's
+                 ## Will this have an effect on following ASes attempts if this fails?
+                 self.base.dtb = dtb
+diff --git a/volatility/plugins/addrspaces/uclinux.py b/volatility/plugins/addrspaces/uclinux.py
+new file mode 100644
+index 00000000..10dad36a
+--- /dev/null
++++ b/volatility/plugins/addrspaces/uclinux.py
+@@ -0,0 +1,38 @@
++# Volatility
++#
++# Authors:
++# Duy KHUONG (khuong@eurecom.fr)
++#
++# This file is part of Volatility.
++#
++# Volatility is free software; you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation; either version 2 of the License, or
++# (at your option) any later version.
++#
++# Volatility is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++#
++# You should have received a copy of the GNU General Public License
++# along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
++#
++
++import struct
++import volatility.plugins.addrspaces.standard as standard
++import volatility.obj as obj
++import volatility.addrspace as addrspace
++import volatility.plugins.addrspaces.arm as arm
++
++#class UClinuxAddressSpace(addrspace.AbstractRunBasedMemory):
++class UClinuxAddressSpace(arm.ArmAddressSpace):
++    """
++    Address space for uClinux-NoMMU memory dumps
++
++    """
++    checkname = 'uClinuxValidAS'
++
++    def vtop(self, vaddr):
++	return vaddr
++
+diff --git a/volatility/plugins/linux/common.py b/volatility/plugins/linux/common.py
+index 037cecb3..0a63cddd 100644
+--- a/volatility/plugins/linux/common.py
++++ b/volatility/plugins/linux/common.py
+@@ -279,6 +279,10 @@ def get_time_vars(obj_vm):
+     # 3.19(ish)+
+     # getboottime from 3.19.x
+     elif tkcore_addr:
++	## SAM: 20171130
++	return (wall, timeo)
++	## SAM: end
++
+         # skip seqcount
+         timekeeper = obj.Object("timekeeper", offset = tkcore_addr + 8, vm = obj_vm)
+         wall = timekeeper.wall_to_monotonic
+diff --git a/volatility/plugins/linux/pslist.py b/volatility/plugins/linux/pslist.py
+index ffa80060..9ed01fc0 100644
+--- a/volatility/plugins/linux/pslist.py
++++ b/volatility/plugins/linux/pslist.py
+@@ -55,11 +55,22 @@ class linux_pslist(linux_common.AbstractLinuxCommand):
+         linux_common.set_plugin_members(self)
+ 
+         init_task_addr = self.addr_space.profile.get_symbol("init_task")
++	# In older versions of Linux, the init_task was named differently
++	init_mm_flag = False
++	if init_task_addr is None:
++	    init_task_addr = self.addr_space.profile.get_symbol("init_mm")
++	    if init_task_addr is not None and init_task_addr > 0:
++		init_mm_flag = True
++
+         init_task = obj.Object("task_struct", vm = self.addr_space, offset = init_task_addr)
+ 
+         # walk the ->tasks list, note that this will *not* display "swapper"
+-        for task in init_task.tasks:
+-            yield task
++	if init_mm_flag:
++	    for task in init_task.run_list:
++		yield task
++	else:
++	    for task in init_task.tasks:
++		yield task
+ 
+     def calculate(self):
+         linux_common.set_plugin_members(self)
+diff --git a/volatility/plugins/overlays/linux/linux.py b/volatility/plugins/overlays/linux/linux.py
+index 4f78e2a8..08047ef2 100644
+--- a/volatility/plugins/overlays/linux/linux.py
++++ b/volatility/plugins/overlays/linux/linux.py
+@@ -118,6 +118,7 @@ linux_overlay = {
+     'VOLATILITY_MAGIC': [None, {
+         'DTB'           : [ 0x0, ['VolatilityDTB', dict(configname = "DTB")]],
+         'ArmValidAS'   :  [ 0x0, ['VolatilityLinuxARMValidAS']],
++        'uClinuxValidAS'   :  [ 0x0, ['VolatilityuCLinuxValidAS']],
+         'IA32ValidAS'  :  [ 0x0, ['VolatilityLinuxIntelValidAS']],
+         'AMD64ValidAS'  :  [ 0x0, ['VolatilityLinuxIntelValidAS']],
+         }],
+@@ -2271,10 +2272,11 @@ class VolatilityDTB(obj.VolatilityMagic):
+         profile = self.obj_vm.profile
+         config = self.obj_vm.get_config()
+         tbl    = self.obj_vm.profile.sys_map["kernel"]
+-        
++
+         if profile.metadata.get('memory_model', '32bit') == "32bit":
+             sym     = "swapper_pg_dir"
+             shifts  = [0xc0000000]
++
+             read_sz = 4
+             fmt     = "<I"
+         else:
+@@ -2300,7 +2302,16 @@ class VolatilityDTB(obj.VolatilityMagic):
+ 
+         good_dtb = -1
+             
+-        init_task_addr = tbl["init_task"][0][0] + virtual_shift_address
++	if "init_task" in tbl:
++	    init_task_addr = tbl["init_task"][0][0] + virtual_shift_address
++	else:
++	    # in order versions of Linux, the init task was named init_mm
++	    init_task_addr = tbl["init_mm"][0][0] + virtual_shift_address
++
++	# There is no paging table, it does not make senses to continue.
++	# Quit safely before rasing any exceptions.
++	if not sym in tbl:
++	    yield good_dtb
+         dtb_sym_addr   = tbl[sym][0][0] + virtual_shift_address
+         files_sym_addr = tbl["init_files"][0][0] + virtual_shift_address
+        
+@@ -2369,6 +2380,8 @@ class VolatilityLinuxIntelValidAS(obj.VolatilityMagic):
+     def generate_suggestions(self):
+ 
+         init_task_addr = self.obj_vm.profile.get_symbol("init_task")
++	if init_task_addr is None:
++	    init_task_addr = self.obj_vm.profile.get_symbol("init_mm")
+         if self.obj_vm.profile.metadata.get('memory_model', '32bit') == "32bit":
+             shifts = [0xc0000000]
+         else:
+@@ -2388,12 +2401,55 @@ class VolatilityLinuxIntelValidAS(obj.VolatilityMagic):
+ 
+         yield ret
+ 
++# The uClinux check.
++class VolatilityuCLinuxValidAS(obj.VolatilityMagic):
++    """An object to check that an address space is a valid uClinux-NoMMU space"""
++    def generate_suggestions(self):
++
++	# handle init_task symbol names of different Linux versions
++	init_symbols = ["init_task", "init_mm"]
++
++	for sym in init_symbols:
++	    init_task_addr = self.obj_vm.profile.get_symbol(sym)
++	    if init_task_addr:
++		break
++
++        do_fork_addr   = self.obj_vm.profile.get_symbol("do_fork")
++
++        if not do_fork_addr or not init_task_addr:
++            return
++
++        sym_addr_diff = (do_fork_addr - init_task_addr)
++
++        if self.obj_vm.profile.metadata.get('memory_model', '32bit') == "32bit":
++            shifts = [0xc0000000, 0x00]
++        else:
++            shifts = [0xffffffff80000000]
++
++        task_paddr = self.obj_vm.vtop(init_task_addr)
++        fork_paddr = self.obj_vm.vtop(do_fork_addr)
++
++	ret = False
++        if task_paddr and fork_paddr:
++	    for shift in shifts:
++		task_off = task_paddr - shift
++		fork_off = fork_paddr - shift
++		check = fork_off - task_off
++
++		if check == sym_addr_diff:
++		    ret = True
++		    break
++
++	yield ret
++
+ # the ARM check, has to check multiple values b/c phones do not map RAM at 0
+ class VolatilityLinuxARMValidAS(obj.VolatilityMagic):
+     """An object to check that an address space is a valid Arm Paged space"""
+     def generate_suggestions(self):
+ 
+         init_task_addr = self.obj_vm.profile.get_symbol("init_task")
++	if init_task_addr is None:
++	    init_task_addr = self.obj_vm.profile.get_symbol("init_mm")
+         do_fork_addr   = self.obj_vm.profile.get_symbol("do_fork") 
+ 
+         if not do_fork_addr or not init_task_addr:
+@@ -2443,6 +2499,7 @@ class LinuxObjectClasses(obj.ProfileModification):
+             'Ipv6Address': basic.Ipv6Address,
+             'VolatilityLinuxIntelValidAS' : VolatilityLinuxIntelValidAS,
+             'VolatilityLinuxARMValidAS' : VolatilityLinuxARMValidAS,
++            'VolatilityuCLinuxValidAS' : VolatilityuCLinuxValidAS,
+             'kernel_param' : kernel_param,
+             'kparam_array' : kparam_array,
+             'desc_struct' : desc_struct,
