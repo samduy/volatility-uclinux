@@ -26,17 +26,17 @@ $ git checkout f3c9dfee -b uclinux
 
 * First, take a look at what changes are in the patch:
 ```
-$ git apply --stat path/to/volatility-uclinux/volatility-patches/20180214/all_in_one.patch
+$ git apply --stat path/to/volatility-uclinux/volatility-patches/20180214/all_in_one_20180214.patch
 ```
 
 * To see if there is any conflicts or errors:
 ```
-$ git apply --check path/to/volatility-uclinux/volatility-patches/20180214/all_in_one.patch
+$ git apply --check path/to/volatility-uclinux/volatility-patches/20180214/all_in_one_20180214.patch
 ```
 
 * To actually apply the patch:
 ```
-$ git am --signoff path/to/volatility-uclinux/volatility-patches/20180214/all_in_one.patch
+$ git am --signoff path/to/volatility-uclinux/volatility-patches/20180214/all_in_one_20180214.patch
 ```
 
 (The reason for this is that `git am` allows you to sign off an applied patch. This may be useful for later reference.)
@@ -83,5 +83,5 @@ For more information on the commands that work with uClinux, please refer to:
 
 * [Build a uClinux kernel](../../wiki/Build-a-uClinux-kernel) for more detail.
 * [Make a uClinux profile for Volatility](../../wiki/Profile-for-Volatility) for more detail.
-* [Some manual memory inspection](../../wiki/Manual-memory-inspection))
+* [Some manual memory inspection](../../wiki/Manual-memory-inspection)
 * [Working with Volatility Shell](../../wiki/Working-with-Volatility-shell)
