@@ -10,7 +10,7 @@ $ git clone https://github.com/samduy/volatility-uclinux.git
 ```
 
 * All the patches are located in a `volatility-patches/<date>` directory.
-* Ready made profiles are at: `Volatility/profiles` folder.
+* Ready made profiles are at: `profiles` folder.
 * Sample memories (for testing) are located in `sample_memories` directory.
 
 ## Download the Volatility
@@ -45,7 +45,7 @@ $ git am --signoff path/to/volatility-uclinux/volatility-patches/20180214/all_in
 
 ```bash
 $ cd /path/to/volatility
-$ cp /path/to/volatility-uclinux/Volatility/profiles/Linux/uClinux/ARM/VersatilePB/uClinux_ARM_VersatilePB.zip plugins/overlays/linux/
+$ cp /path/to/volatility-uclinux/profiles/uClinux_VersatilePB.zip plugins/overlays/linux/
 ```
 
 ### Testing if the profile is loaded properly
@@ -54,7 +54,7 @@ $ cp /path/to/volatility-uclinux/Volatility/profiles/Linux/uClinux/ARM/Versatile
 $ cd path/to/volatility
 $ python vol.py --info | grep uClinux
 Volatility Foundation Volatility Framework 2.6
-LinuxuClinux_ARM_VersatilePBARM - A Profile for Linux uClinux_ARM_VersatilePB ARM
+LinuxuClinux_VersatilePBARM - A Profile for Linux uClinux_VersatilePB ARM
 ```
 
 Now Volatility should be ready to run with uClinux memory dumps. Let's check it out!
@@ -64,16 +64,16 @@ Now Volatility should be ready to run with uClinux memory dumps. Let's check it 
 ### Unzip the sample memory
 
 ```
-$ cp path/to/volatility-uclinux/sample_memories/converted.raw.bz2 /tmp/
+$ cp path/to/volatility-uclinux/sample_memories/mem2.dump.bz2 /tmp/
 $ cd /tmp/
-$ bzip2 -d converted.raw.bz2
+$ bzip2 -d mem2.dump.bz2
 ```
 
 ### Run some commands on the sample memory
 
 ```
 $ cd path/to/volatility
-$ python vol.py --profile=LinuxuClinux_ARM_VersatilePBARM -f /tmp/converted.raw linux_pslist
+$ python vol.py --profile=LinuxuClinux_VersatilePBARM -f /tmp/mem2.dump linux_pslist
 ```
 
 For more information on the commands that work with uClinux, please refer to:
