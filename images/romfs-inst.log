@@ -1,0 +1,14 @@
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/vendors/ARM/Versatile-PB-noMMU/../../Generic/big/inittab /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/etc/inittab
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/vendors/ARM/Versatile-PB-noMMU/rc /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/etc/rc
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/vendors/ARM/Versatile-PB-noMMU/inittab /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/etc/inittab
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/vendors/ARM/Versatile-PB-noMMU/motd /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/etc/motd
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/vendors/ARM/Versatile-PB-noMMU/start /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/etc/default/start
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/dhcpcd-new/dhcpcd /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/bin/dhcpcd
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/inetd/inetd /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/bin/inetd
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/init/init /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/bin/init
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/net-tools/ifconfig /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs//sbin/ifconfig
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/net-tools/route /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs//sbin/route
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/null/null /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/bin/null
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/ping/ping /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/bin/ping
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/sash/sh /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/bin/sh
+/mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/user/telnet/telnet /mnt/hdd3/kali_workspace/2017-Fall-41/source/uClinux-4.x/uClinux-dist/romfs/bin/telnet
